@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Unit, mobile, and admin quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.2
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/mobile/package-lock.json
+            apps/admin/package-lock.json
+
+      - name: Install root tooling
+        run: npm ci
+
+      # The existing Expo lockfile was created with legacy peer resolution.
+      # Keep it reproducible without changing any application package versions.
+      - name: Install mobile dependencies
+        working-directory: apps/mobile
+        run: npm ci --legacy-peer-deps
+
+      - name: Install admin dependencies
+        working-directory: apps/admin
+        run: npm ci
+
+      - name: Run unit and mobile regression tests
+        run: npm test
+
+      - name: Typecheck mobile
+        working-directory: apps/mobile
+        run: npm run typecheck
+
+      - name: Lint mobile
+        working-directory: apps/mobile
+        run: npm run lint
+
+      - name: Check Expo dependency compatibility
+        working-directory: apps/mobile
+        run: npx expo install --check
+
+      - name: Typecheck admin
+        working-directory: apps/admin
+        run: npm run typecheck
+
+      - name: Lint admin
+        working-directory: apps/admin
+        run: npm run lint
+
+      - name: Build admin production bundle
+        working-directory: apps/admin
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build
+
+  database:
+    name: Local database contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.2
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install project-local Supabase CLI
+        run: npm ci
+
+      # This starts an isolated Docker Supabase stack from version-controlled
+      # migrations only. It has no linked-project flag or hosted credential.
+      # Supabase prints local-only development keys on startup; keep those
+      # ephemeral values out of public workflow logs as defense in depth.
+      - name: Start local Supabase
+        run: npx --no-install supabase start > "$RUNNER_TEMP/supabase-start.log"
+
+      - name: Run pgTAP database contracts
+        run: npx --no-install supabase test db --local
+
+      - name: Lint local database schema
+        run: npx --no-install supabase db lint --local --schema public,private --fail-on error
+
+      - name: Stop local Supabase
+        if: always()
+        run: npx --no-install supabase stop --no-backup

@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Pothole MTL",
+    "slug": "pothole-mtl",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "potholemtl",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Pothole MTL uses your camera so you can photograph road damage when submitting a pothole report.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "locationWhenInUsePermission": "Pothole MTL uses your location to identify where the reported pothole is located."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

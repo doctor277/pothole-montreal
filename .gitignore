@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+
+# Expo and generated build state
+.expo/
+.expo-shared/
+dist/
+web-build/
+.next/
+.turbo/
+.metro-health-check*
+expo-env.d.ts
+
+# Local package-manager state
+.npm-cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Supabase CLI machine/project state
+.supabase/
+supabase/.temp/
+supabase/.branches/
+
+# Local database files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Native signing credentials
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+signing_keys.json
+credentials.json
+*.credentials.json
+
+# Generated analysis and test output
+coverage/
+*.tsbuildinfo
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Local editor state
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
